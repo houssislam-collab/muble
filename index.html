@@ -255,7 +255,7 @@ function clearMask(){pureCtx.clearRect(0,0,pureCanvas.width,pureCanvas.height);m
 
 // PROCESS
 async function processImage(){
-  if(API_KEY==='PASTE_YOUR_CLIPDROP_KEY_HERE'){showToast('افتح الكود وضع مفتاحك في API_KEY','error');return}
+  if(API_KEY===''){showToast('افتح الكود وضع مفتاحك في API_KEY','error');return}
   const pd=pureCtx.getImageData(0,0,pureCanvas.width,pureCanvas.height);
   if(!pd.data.some((v,i)=>i%4===3&&v>0)){showToast('ارسم أولاً فوق العلامة المائية','error');return}
   document.getElementById('loaderOverlay').classList.add('active');
@@ -265,8 +265,8 @@ async function processImage(){
     const mfc=document.createElement('canvas');mfc.width=pureCanvas.width;mfc.height=pureCanvas.height;
     const mfx=mfc.getContext('2d');mfx.fillStyle='#000';mfx.fillRect(0,0,mfc.width,mfc.height);mfx.drawImage(pureCanvas,0,0);
     const maskBlob=await canvasToBlob(mfc,'image/png');
-    const fd=new FormData();fd.append('image_file',imageBlob,'image.png');fd.append('mask_file',maskBlob,'mask.png');
-    const resp=await fetch('https://clipdrop-api.co/cleanup/v1',{method:'POST',headers:{'x-api-key':API_KEY},body:fd});
+    const fd=new FormData();fd.append('image_file',imageBlob,'image.png');fd.append('mask_file',maskBlob,'mask.png');fd.append('output_format','png');
+    const resp=await fetch('https://api.stability.ai/v2beta/stable-image/edit/inpaint',{method:'POST',headers:{'Authorization':'Bearer '+API_KEY,'Accept':'image/*'},body:fd});
     if(!resp.ok){const t=await resp.text();throw new Error(t)}
     resultBlob=await resp.blob();
     const rUrl=URL.createObjectURL(resultBlob);
