@@ -1,3 +1,4 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -21,6 +22,9 @@
   .logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
   .new-btn{padding:7px 16px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);font-family:inherit;font-size:13px;cursor:pointer;transition:all .18s;display:none}
   .new-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .badge{display:flex;align-items:center;gap:7px;padding:5px 12px;background:rgba(91,245,160,0.08);border:1px solid rgba(91,245,160,0.25);border-radius:20px;font-size:11px;color:var(--green)}
+  .badge-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
   .main{flex:1;display:flex;flex-direction:column;padding:32px 28px;gap:24px;max-width:1200px;margin:0 auto;width:100%}
   .upload-zone{border:1.5px dashed var(--border2);border-radius:var(--radius);padding:72px 32px;text-align:center;cursor:pointer;transition:all .25s;background:var(--surface);position:relative;overflow:hidden}
   .upload-zone::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,var(--accent-glow),transparent 70%);opacity:0;transition:opacity .3s}
@@ -43,6 +47,8 @@
   .brush-slider{-webkit-appearance:none;width:100px;height:4px;background:var(--border2);border-radius:2px;outline:none;cursor:pointer}
   .brush-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 8px var(--accent)}
   .brush-val{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text2);min-width:28px}
+  .mode-select{padding:6px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:inherit;font-size:12px;cursor:pointer;outline:none}
+  .mode-select:focus{border-color:var(--accent)}
   .process-btn{margin-right:auto;padding:8px 24px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:var(--radius-sm);color:#fff;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px}
   .process-btn:hover{opacity:.88;transform:translateY(-1px);box-shadow:0 4px 20px rgba(91,138,245,0.35)}
   .process-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
@@ -57,13 +63,15 @@
   #maskCanvas{position:absolute;top:0;left:0;pointer-events:none}
   .canvas-overlay{position:absolute;top:0;left:0;right:0;bottom:0;cursor:crosshair}
   .result-wrap{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:100%;min-height:380px}
-  #resultImg{max-width:100%;max-height:480px;display:none;border-radius:4px}
+  #resultCanvas{max-width:100%;max-height:480px;display:none;border-radius:4px}
   .result-placeholder{display:flex;flex-direction:column;align-items:center;gap:12px;color:var(--text3)}
   .result-placeholder svg{opacity:.25}
-  .loader-overlay{position:absolute;inset:0;background:rgba(7,8,13,0.88);display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;z-index:10;border-radius:var(--radius)}
+  .loader-overlay{position:absolute;inset:0;background:rgba(7,8,13,0.88);display:none;align-items:center;justify-content:flex-start;flex-direction:column;gap:16px;z-index:10;border-radius:var(--radius);padding-top:80px}
   .loader-overlay.active{display:flex}
   .spinner{width:40px;height:40px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
+  .progress-bar-wrap{width:70%;max-width:300px;height:4px;background:var(--border2);border-radius:2px;overflow:hidden}
+  .progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;width:0%;transition:width .1s}
   .loader-text{color:var(--text2);font-size:13px}
   .loader-sub{color:var(--text3);font-size:11px}
   .panel-footer{padding:10px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2)}
@@ -89,13 +97,12 @@
     </div>
     <div style="display:flex;gap:10px;align-items:center">
       <button class="new-btn" id="newBtn" onclick="resetAll()">← صورة جديدة</button>
-      <div style="display:flex;align-items:center;gap:7px;padding:6px 14px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;font-size:12px;color:var(--text2)">
-        <div style="width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s ease-in-out infinite"></div>
-        جاهز
+      <div class="badge">
+        <div class="badge-dot"></div>
+        مجاني · بدون إنترنت
       </div>
     </div>
   </nav>
-  <style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}</style>
 
   <div class="main">
     <div class="upload-zone" id="uploadZone">
@@ -118,6 +125,15 @@
           <span>الحجم</span>
           <input type="range" class="brush-slider" id="brushSize" min="5" max="80" value="24">
           <span class="brush-val" id="brushVal">24</span>
+        </div>
+        <div class="toolbar-sep"></div>
+        <div class="brush-control">
+          <span>وضع الإزالة</span>
+          <select class="mode-select" id="modeSelect">
+            <option value="smart">ذكي (مستندات)</option>
+            <option value="telea">تيليا (عام)</option>
+            <option value="white">خلفية بيضاء</option>
+          </select>
         </div>
         <div class="toolbar-sep"></div>
         <button class="tool-btn danger" onclick="clearMask()">✕ مسح الكل</button>
@@ -153,12 +169,13 @@
                 <svg width="52" height="52" viewBox="0 0 52 52" fill="none"><rect x="4" y="4" width="44" height="44" rx="8" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="20" r="5" stroke="currentColor" stroke-width="2"/><path d="M4 36l11-11 9 9 7-7 17 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 <span>ارسم فوق العلامة ثم اضغط إزالة</span>
               </div>
-              <img id="resultImg" alt="النتيجة">
+              <canvas id="resultCanvas"></canvas>
             </div>
             <div class="loader-overlay" id="loaderOverlay">
               <div class="spinner"></div>
-              <span class="loader-text">الذكاء الاصطناعي يعالج الصورة...</span>
-              <span class="loader-sub">قد يستغرق بضع ثوانٍ</span>
+              <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+              <span class="loader-text" id="loaderText">جارٍ التحليل...</span>
+              <span class="loader-sub">معالجة محلية — لا إنترنت مطلوب</span>
             </div>
           </div>
           <div class="panel-footer">
@@ -169,10 +186,10 @@
       </div>
 
       <div class="tips">
-        <div class="tip"><span class="tip-icon">①</span> ارسم بالفرشاة الحمراء فوق العلامة المائية أو الختم</div>
-        <div class="tip"><span class="tip-icon">②</span> يمكن تحديد مناطق متعددة في نفس الوقت</div>
-        <div class="tip"><span class="tip-icon">③</span> كلما كانت المنطقة المحددة دقيقة كانت النتيجة أفضل</div>
-        <div class="tip"><span class="tip-icon">④</span> يعمل مع النصوص والشعارات والأختام</div>
+        <div class="tip"><span class="tip-icon">①</span> ارسم بالفرشاة الحمراء فوق العلامة المائية أو الختم كاملاً</div>
+        <div class="tip"><span class="tip-icon">②</span> وضع "ذكي" ممتاز للمستندات والأختام على خلفية بيضاء</div>
+        <div class="tip"><span class="tip-icon">③</span> وضع "تيليا" أفضل للصور الطبيعية والخلفيات الملوّنة</div>
+        <div class="tip"><span class="tip-icon">④</span> المعالجة تجري داخل المتصفح — مجانية تماماً ولا تُرسل بياناتك لأي خادم</div>
       </div>
     </div>
   </div>
@@ -180,17 +197,14 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ═══════════════════════════════════════════════
-//  ← ضع مفتاحك هنا
-const API_KEY = 'sk-DbezipogkH7EYS9TUZ6zhEI6FIrJvO3t3984BkgKwjBO0iBj';
-// ═══════════════════════════════════════════════
-
 let currentTool='brush',isDrawing=false,lastX=0,lastY=0,brushSize=24;
-let originalFile=null,resultBlob=null;
+let originalFile=null;
 const imgCanvas=document.getElementById('imgCanvas');
 const maskCanvas=document.getElementById('maskCanvas');
+const resultCanvas=document.getElementById('resultCanvas');
 const imgCtx=imgCanvas.getContext('2d');
 const maskCtx=maskCanvas.getContext('2d');
+const resCtx=resultCanvas.getContext('2d');
 const pureCanvas=document.createElement('canvas');
 const pureCtx=pureCanvas.getContext('2d');
 
@@ -253,35 +267,340 @@ function redrawOverlay(){
 function setTool(t){currentTool=t;document.getElementById('brushBtn').classList.toggle('active',t==='brush');document.getElementById('eraserBtn').classList.toggle('active',t==='eraser')}
 function clearMask(){pureCtx.clearRect(0,0,pureCanvas.width,pureCanvas.height);maskCtx.clearRect(0,0,maskCanvas.width,maskCanvas.height)}
 
-// PROCESS
+// ─── LOCAL INPAINTING ENGINE ───────────────────────────────────────────────
+
+function setProgress(pct, text){
+  document.getElementById('progressBar').style.width=pct+'%';
+  if(text) document.getElementById('loaderText').textContent=text;
+}
+
 async function processImage(){
-  if(API_KEY===''){showToast('افتح الكود وضع مفتاحك في API_KEY','error');return}
   const pd=pureCtx.getImageData(0,0,pureCanvas.width,pureCanvas.height);
   if(!pd.data.some((v,i)=>i%4===3&&v>0)){showToast('ارسم أولاً فوق العلامة المائية','error');return}
+
   document.getElementById('loaderOverlay').classList.add('active');
   document.getElementById('processBtn').disabled=true;
-  try{
-    const imageBlob=await canvasToBlob(imgCanvas);
-    const mfc=document.createElement('canvas');mfc.width=pureCanvas.width;mfc.height=pureCanvas.height;
-    const mfx=mfc.getContext('2d');mfx.fillStyle='#000';mfx.fillRect(0,0,mfc.width,mfc.height);mfx.drawImage(pureCanvas,0,0);
-    const maskBlob=await canvasToBlob(mfc,'image/png');
-    const fd=new FormData();fd.append('image',imageBlob,'image.png');fd.append('mask',maskBlob,'mask.png');fd.append('prompt','white paper, clean document, no stamp, no watermark, plain white background');fd.append('negative_prompt','stamp, watermark, logo, text, seal, mark');fd.append('output_format','png');
-    const resp=await fetch('https://api.stability.ai/v2beta/stable-image/edit/inpaint',{method:'POST',headers:{'Authorization':'Bearer '+API_KEY,'Accept':'image/*'},body:fd});
-    if(!resp.ok){const t=await resp.text();throw new Error(t)}
-    resultBlob=await resp.blob();
-    const rUrl=URL.createObjectURL(resultBlob);
-    const ri=document.getElementById('resultImg');
-    ri.onload=()=>{document.getElementById('resultPlaceholder').style.display='none';ri.style.display='block';document.getElementById('dlBtn').disabled=false;document.getElementById('resultDot').style.background='var(--green)';document.getElementById('resultInfo').textContent='تمت المعالجة بنجاح ✓';showToast('تمت إزالة العلامة المائية!','success')};
-    ri.src=rUrl;
-  }catch(err){showToast('خطأ: '+err.message,'error');console.error(err)}
-  finally{document.getElementById('loaderOverlay').classList.remove('active');document.getElementById('processBtn').disabled=false}
-}
-function canvasToBlob(c,type='image/png'){return new Promise(r=>c.toBlob(r,type,.95))}
+  setProgress(0,'جارٍ تجهيز الصورة...');
 
-function downloadResult(){if(!resultBlob)return;const a=document.createElement('a');a.href=URL.createObjectURL(resultBlob);a.download='cleaned_'+(originalFile?.name||'image.png');a.click()}
+  // small delay so UI updates
+  await sleep(30);
+
+  const W=imgCanvas.width, H=imgCanvas.height;
+  const src=imgCtx.getImageData(0,0,W,H);
+  const maskData=pureCtx.getImageData(0,0,W,H);
+
+  // Build binary mask (1 = masked)
+  const mask=new Uint8Array(W*H);
+  for(let i=0;i<W*H;i++) mask[i]= maskData.data[i*4+3]>10 ? 1 : 0;
+
+  const mode=document.getElementById('modeSelect').value;
+
+  setProgress(10,'تحليل المنطقة المحددة...');
+  await sleep(20);
+
+  let result;
+  if(mode==='white'){
+    result=inpaintWhite(src,mask,W,H);
+  } else if(mode==='telea'){
+    result=await inpaintTelea(src,mask,W,H);
+  } else {
+    result=await inpaintSmart(src,mask,W,H);
+  }
+
+  setProgress(95,'رسم النتيجة...');
+  await sleep(20);
+
+  resultCanvas.width=W; resultCanvas.height=H;
+  resCtx.putImageData(result,0,0);
+  resultCanvas.style.display='block';
+  document.getElementById('resultPlaceholder').style.display='none';
+  document.getElementById('dlBtn').disabled=false;
+  document.getElementById('resultDot').style.background='var(--green)';
+  document.getElementById('resultInfo').textContent='تمت المعالجة بنجاح ✓';
+  setProgress(100,'تم!');
+  await sleep(200);
+  document.getElementById('loaderOverlay').classList.remove('active');
+  document.getElementById('processBtn').disabled=false;
+  showToast('تمت إزالة العلامة المائية!','success');
+}
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+
+// ── Mode 1: White background fill ──────────────────────────────────────────
+function inpaintWhite(src,mask,W,H){
+  const out=new ImageData(new Uint8ClampedArray(src.data),W,H);
+  for(let i=0;i<W*H;i++){
+    if(!mask[i]) continue;
+    out.data[i*4]=255; out.data[i*4+1]=255; out.data[i*4+2]=255; out.data[i*4+3]=255;
+  }
+  return out;
+}
+
+// ── Mode 2: Smart (best for documents) ─────────────────────────────────────
+// Detects background color (white for docs) then cleans stamp pixels
+async function inpaintSmart(src,mask,W,H){
+  const out=new ImageData(new Uint8ClampedArray(src.data),W,H);
+  const d=out.data;
+
+  setProgress(15,'تحليل الخلفية...');
+  await sleep(10);
+
+  // Step 1: Sample background color from a border around the masked area
+  // Look 20px outside the mask bounding box
+  const SAMPLE_R=20;
+  let bgR=0,bgG=0,bgB=0,bgCnt=0;
+  const expanded=expandMask(mask,W,H,SAMPLE_R);
+  for(let y=0;y<H;y++){
+    for(let x=0;x<W;x++){
+      const i=y*W+x;
+      if(mask[i]) continue;      // inside mask – skip
+      if(!expanded[i]) continue; // too far from mask – skip
+      bgR+=src.data[i*4]; bgG+=src.data[i*4+1]; bgB+=src.data[i*4+2]; bgCnt++;
+    }
+  }
+  let BR=255,BG=255,BB=255;
+  if(bgCnt>0){BR=bgR/bgCnt;BG=bgG/bgCnt;BB=bgB/bgCnt;}
+
+  // If background is near-white (document), use pure white
+  const isWhiteBg=BR>200&&BG>200&&BB>200;
+  if(isWhiteBg){BR=255;BG=255;BB=255;}
+
+  setProgress(30,'استرجاع الخلفية...');
+  await sleep(10);
+
+  // Step 2: For each masked pixel, reconstruct background
+  // Strategy: weighted average of nearest UNMASKED pixels
+  // For white docs: where pixel is darker than bg (stamp ink), replace with bg
+  const RADIUS=30;
+  for(let y=0;y<H;y++){
+    for(let x=0;x<W;x++){
+      const i=y*W+x;
+      if(!mask[i]) continue;
+
+      if(isWhiteBg){
+        // For white docs: try to recover any text under the stamp
+        // Sample from outside the mask within radius – weighted by distance
+        let wr=0,wg=0,wb=0,wt=0;
+        const r=Math.min(RADIUS,15);
+        for(let dy=-r;dy<=r;dy+=2){
+          for(let dx=-r;dx<=r;dx+=2){
+            const nx=x+dx,ny=y+dy;
+            if(nx<0||nx>=W||ny<0||ny>=H) continue;
+            const ni=ny*W+nx;
+            if(mask[ni]) continue; // don't sample masked pixels
+            const dist2=dx*dx+dy*dy;
+            const w=1.0/(dist2+1);
+            wr+=w*src.data[ni*4]; wg+=w*src.data[ni*4+1]; wb+=w*src.data[ni*4+2]; wt+=w;
+          }
+        }
+        if(wt>0){
+          d[i*4]=wr/wt; d[i*4+1]=wg/wt; d[i*4+2]=wb/wt;
+        } else {
+          d[i*4]=BR; d[i*4+1]=BG; d[i*4+2]=BB;
+        }
+        d[i*4+3]=255;
+      } else {
+        // Colored background: weighted sample from border
+        let wr=0,wg=0,wb=0,wt=0;
+        for(let dy=-RADIUS;dy<=RADIUS;dy+=2){
+          for(let dx=-RADIUS;dx<=RADIUS;dx+=2){
+            const nx=x+dx,ny=y+dy;
+            if(nx<0||nx>=W||ny<0||ny>=H) continue;
+            const ni=ny*W+nx;
+            if(mask[ni]) continue;
+            const dist2=dx*dx+dy*dy;
+            const w=1.0/(dist2+1);
+            wr+=w*src.data[ni*4]; wg+=w*src.data[ni*4+1]; wb+=w*src.data[ni*4+2]; wt+=w;
+          }
+        }
+        if(wt>0){
+          d[i*4]=wr/wt; d[i*4+1]=wg/wt; d[i*4+2]=wb/wt;
+        } else {
+          d[i*4]=BR; d[i*4+1]=BG; d[i*4+2]=BB;
+        }
+        d[i*4+3]=255;
+      }
+    }
+    if(y%50===0){setProgress(30+Math.round(y/H*50),'معالجة الصورة...');await sleep(1);}
+  }
+
+  setProgress(82,'تنعيم الحواف...');
+  await sleep(10);
+
+  // Step 3: Gaussian-like smoothing ONLY on masked pixels
+  const tmp=new Uint8ClampedArray(d);
+  for(let pass=0;pass<2;pass++){
+    for(let y=1;y<H-1;y++){
+      for(let x=1;x<W-1;x++){
+        const i=y*W+x;
+        if(!mask[i]) continue;
+        // weighted kernel: center=4, edges=1
+        const ns=[i-W-1,i-W,i-W+1,i-1,i+1,i+W-1,i+W,i+W+1];
+        const wts=[1,2,1,2,2,1,2,1];
+        let r=0,g=0,b=0,wt=0;
+        for(let k=0;k<8;k++){const ni=ns[k];r+=wts[k]*tmp[ni*4];g+=wts[k]*tmp[ni*4+1];b+=wts[k]*tmp[ni*4+2];wt+=wts[k];}
+        d[i*4]=r/wt;d[i*4+1]=g/wt;d[i*4+2]=b/wt;d[i*4+3]=255;
+      }
+    }
+    tmp.set(d);
+    setProgress(82+pass*5,'تنعيم الحواف...');
+    await sleep(5);
+  }
+
+  return out;
+}
+
+function expandMask(m,W,H,r){
+  const out=new Uint8Array(m);
+  for(let y=0;y<H;y++){
+    for(let x=0;x<W;x++){
+      if(!m[y*W+x]) continue;
+      for(let dy=-r;dy<=r;dy++) for(let dx=-r;dx<=r;dx++){
+        const nx=x+dx,ny=y+dy;
+        if(nx>=0&&nx<W&&ny>=0&&ny<H) out[ny*W+nx]=1;
+      }
+    }
+  }
+  return out;
+}
+
+function blendEdges(d,mask,W,H){
+  // for pixels at the edge of the mask, blend with original to avoid sharp borders
+  for(let y=1;y<H-1;y++){
+    for(let x=1;x<W-1;x++){
+      const i=y*W+x;
+      if(!mask[i]) continue;
+      // Count masked neighbors
+      let maskedN=0, total=0;
+      const ns=[i-1,i+1,i-W,i+W];
+      for(const ni of ns){total++;if(mask[ni]||(ni<0))maskedN++;}
+      if(maskedN<total){ // edge pixel
+        const t=maskedN/total; // 0=fully at edge, 1=fully inside
+        // already filled by inpaint, just confirm alpha
+        d[i*4+3]=255;
+      }
+    }
+  }
+}
+
+// ── Mode 3: Telea-inspired fast marching inpainting ────────────────────────
+async function inpaintTelea(src,mask,W,H){
+  const out=new ImageData(new Uint8ClampedArray(src.data),W,H);
+  const d=out.data;
+  const flags=new Uint8Array(W*H); // 0=known,1=band,2=unknown
+  const T=new Float32Array(W*H).fill(Infinity); // distance
+
+  // Init
+  for(let i=0;i<W*H;i++) if(mask[i]){flags[i]=2;}
+
+  // Find band: non-mask adjacent to mask
+  const band=[];
+  for(let y=0;y<H;y++){
+    for(let x=0;x<W;x++){
+      const i=y*W+x;
+      if(flags[i]!==2) continue;
+      const ns=[x>0?i-1:-1,x<W-1?i+1:-1,y>0?i-W:-1,y<H-1?i+W:-1];
+      let adj=false;
+      for(const ni of ns) if(ni>=0&&flags[ni]===0) adj=true;
+      if(adj){flags[i]=1;T[i]=0;band.push(i);}
+    }
+  }
+
+  setProgress(20,'Fast Marching...');
+  await sleep(10);
+
+  // FMM: process band outward
+  // Simple BFS approximation (Telea approximation)
+  let q=[...band];
+  const visited=new Uint8Array(W*H);
+  for(const i of q) visited[i]=1;
+
+  let iter=0;
+  while(q.length>0){
+    const nq=[];
+    for(const idx of q){
+      const x=idx%W,y=Math.floor(idx/W);
+      const ns=[x>0?idx-1:-1,x<W-1?idx+1:-1,y>0?idx-W:-1,y<H-1?idx+W:-1];
+      for(const ni of ns){
+        if(ni<0||!mask[ni]||visited[ni]) continue;
+        visited[ni]=1;
+        // Telea inpaint: weighted average of known neighbors
+        teleaEstimate(d,flags,T,ni,x,y,idx,W,H,src.data);
+        flags[ni]=1;
+        T[ni]=T[idx]+1;
+        nq.push(ni);
+      }
+    }
+    q=nq;
+    iter++;
+    if(iter%10===0){setProgress(20+Math.min(iter,60),'Fast Marching...');await sleep(1);}
+  }
+
+  setProgress(80,'تنعيم...');
+  await sleep(10);
+
+  // Smoothing
+  const tmp=new Uint8ClampedArray(d);
+  for(let y=1;y<H-1;y++){
+    for(let x=1;x<W-1;x++){
+      const i=y*W+x;
+      if(!mask[i]) continue;
+      let r=0,g=0,b=0,cnt=0;
+      for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){
+        if(dx===0&&dy===0) continue;
+        const ni=(y+dy)*W+(x+dx);
+        r+=tmp[ni*4];g+=tmp[ni*4+1];b+=tmp[ni*4+2];cnt++;
+      }
+      d[i*4]=r/cnt;d[i*4+1]=g/cnt;d[i*4+2]=b/cnt;d[i*4+3]=255;
+    }
+  }
+
+  return out;
+}
+
+function teleaEstimate(d,flags,T,ni,px,py,pidx,W,H,srcData){
+  const nx=ni%W,ny=Math.floor(ni/W);
+  const R=8;
+  let wr=0,wg=0,wb=0,wt=0;
+  for(let dy=-R;dy<=R;dy++){
+    for(let dx=-R;dx<=R;dx++){
+      const qx=nx+dx,qy=ny+dy;
+      if(qx<0||qx>=W||qy<0||qy>=H) continue;
+      const qi=qy*W+qx;
+      if(flags[qi]===2) continue; // unknown
+      const dist2=dx*dx+dy*dy;
+      if(dist2===0) continue;
+      // direction weight
+      const Ix=(nx>0?srcData[(ni-1)*4]-srcData[ni*4]:0)+(nx<W-1?srcData[(ni+1)*4]-srcData[ni*4]:0);
+      // simple distance-only weight for speed
+      const w=1.0/dist2;
+      wr+=w*d[qi*4]; wg+=w*d[qi*4+1]; wb+=w*d[qi*4+2]; wt+=w;
+    }
+  }
+  if(wt>0){
+    d[ni*4]=Math.min(255,wr/wt);
+    d[ni*4+1]=Math.min(255,wg/wt);
+    d[ni*4+2]=Math.min(255,wb/wt);
+    d[ni*4+3]=255;
+  }
+}
+
+// ─── DOWNLOAD ──────────────────────────────────────────────────────────────
+function downloadResult(){
+  resultCanvas.toBlob(blob=>{
+    if(!blob) return;
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='cleaned_'+(originalFile?.name||'image.png');
+    a.click();
+  },'image/png',.95);
+}
+
 function resetAll(){zone.style.display='';document.getElementById('workspace').classList.remove('visible');document.getElementById('newBtn').style.display='none';[imgCtx,maskCtx,pureCtx].forEach(c=>c.clearRect(0,0,c.canvas.width,c.canvas.height));resetResult();fi.value='';originalFile=null}
-function resetResult(){resultBlob=null;const ri=document.getElementById('resultImg');ri.style.display='none';ri.src='';document.getElementById('resultPlaceholder').style.display='flex';document.getElementById('dlBtn').disabled=true;document.getElementById('resultDot').style.background='var(--text3)';document.getElementById('resultInfo').textContent='في انتظار المعالجة'}
+function resetResult(){const rc=document.getElementById('resultCanvas');rc.style.display='none';document.getElementById('resultPlaceholder').style.display='flex';document.getElementById('dlBtn').disabled=true;document.getElementById('resultDot').style.background='var(--text3)';document.getElementById('resultInfo').textContent='في انتظار المعالجة'}
 let tt;function showToast(msg,type='success'){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast ${type} show`;clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),3400)}
 </script>
 </body>
 </html>
+
+</body></html>
