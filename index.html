@@ -265,7 +265,7 @@ async function processImage(){
     const mfc=document.createElement('canvas');mfc.width=pureCanvas.width;mfc.height=pureCanvas.height;
     const mfx=mfc.getContext('2d');mfx.fillStyle='#000';mfx.fillRect(0,0,mfc.width,mfc.height);mfx.drawImage(pureCanvas,0,0);
     const maskBlob=await canvasToBlob(mfc,'image/png');
-    const fd=new FormData();fd.append('image',imageBlob,'image.png');fd.append('mask',maskBlob,'mask.png');fd.append('prompt','clean background, remove watermark');fd.append('output_format','png');
+    const fd=new FormData();fd.append('image',imageBlob,'image.png');fd.append('mask',maskBlob,'mask.png');fd.append('prompt','white paper, clean document, no stamp, no watermark, plain white background');fd.append('negative_prompt','stamp, watermark, logo, text, seal, mark');fd.append('output_format','png');
     const resp=await fetch('https://api.stability.ai/v2beta/stable-image/edit/inpaint',{method:'POST',headers:{'Authorization':'Bearer '+API_KEY,'Accept':'image/*'},body:fd});
     if(!resp.ok){const t=await resp.text();throw new Error(t)}
     resultBlob=await resp.blob();
